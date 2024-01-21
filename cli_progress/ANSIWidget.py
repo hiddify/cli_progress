@@ -40,7 +40,7 @@ class ANSICanvas(urwid.canvas.Canvas):
                 text = ""
             oversize = cols - len(escape_ansi(text))
             if oversize < 0:
-                text = text[: oversize - 1] + ">\033[0m"
+                text = trancate_ansi(text,cols-1) +">\033[0m"
                 oversize = 0
 
             padding = bytes().rjust(oversize)
@@ -69,3 +69,11 @@ class ANSIWidget(urwid.Widget):
 def escape_ansi(line):
     ansi_escape = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
     return ansi_escape.sub("", line)
+
+
+def trancate_ansi(line,cols):
+    
+    while len(with_out_ansi:=escape_ansi(line))>cols:
+
+        line=line[:-1]
+    return line

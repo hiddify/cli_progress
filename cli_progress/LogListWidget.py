@@ -9,7 +9,7 @@ class LogListBox(urwid.ListBox):
         super().__init__(body)
 
     def add_log_line(self, data, err, replace=False):
-        txt = f"\033[91m{data}6" if err else data
+        txt = f"\033[91m{data}\033[0m" if err else data
         if replace:
             self.body[-1].set_content(txt)
         else:
