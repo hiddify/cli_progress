@@ -82,7 +82,7 @@ class ProgressUI:
                 footer_footer,
             ]
         )
-
+        self.exit_code = 0
         self.loop = urwid.MainLoop(
             BackgroundView(urwid.AttrMap(self.listbox, "body"), header_widget, footer),
             palette,
@@ -153,10 +153,11 @@ class ProgressUI:
             # except:
             #     pass
             proc.send_signal(signal.SIGTERM)
-            sys.exit(0)
+            sys.exit(self.exit_code)
 
     def exit_loop_finish_proceess(self, exit_code):
         # self.handle_line("Process Finished... To Exit Press Q",False)
+        self.exit_code = exit_code
         if exit_code:
             self.progressbar.normal = "progressbar_error"
             self.handle_progress(
