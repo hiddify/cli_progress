@@ -27,14 +27,14 @@ install:          ## Install the project in dev mode.
 .PHONY: fmt
 fmt:              ## Format code using black & isort.
 	$(ENV_PREFIX)isort cli_progress/
-	$(ENV_PREFIX)black -l 79 cli_progress/
-	$(ENV_PREFIX)black -l 79 tests/
+	$(ENV_PREFIX)black -l 159 cli_progress/
+	$(ENV_PREFIX)black -l 159 tests/
 
 .PHONY: lint
 lint:             ## Run pep8, black, mypy linters.
-	$(ENV_PREFIX)flake8 cli_progress/
-	$(ENV_PREFIX)black -l 79 --check cli_progress/
-	$(ENV_PREFIX)black -l 79 --check tests/
+	$(ENV_PREFIX)flake8 --max-line-length=160 cli_progress/
+	$(ENV_PREFIX)black -l 159 --check cli_progress/
+	$(ENV_PREFIX)black -l 159 --check tests/
 	$(ENV_PREFIX)mypy --ignore-missing-imports cli_progress/
 
 .PHONY: test

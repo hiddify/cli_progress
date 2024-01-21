@@ -1,19 +1,17 @@
 #!/usr/bin/env python
 
 from __future__ import annotations
-from typing import Tuple, List, Optional, Any, Iterable
-import threading
-from .BackgroundWidget import BackgroundView
-import os
+
+import re
+import signal
 import subprocess
 import sys
-import signal
+
 import urwid
-import re
-from twisted.internet import reactor, threads
+from twisted.internet import threads
 
+from .BackgroundWidget import BackgroundView
 from .LogListWidget import LogListBox
-
 
 main_event_loop = urwid.TwistedEventLoop()
 
@@ -34,7 +32,7 @@ palette = [
     ("progress_header_descr", "dark blue", "light gray"),
     ("progressbar_normal", "light gray", "black"),
     ("progressbar_complete", "white", "dark green"),
-    ("progressbar_error","dark red","dark red")
+    ("progressbar_error", "dark red", "dark red"),
 ]
 
 footer_info = [
@@ -61,9 +59,7 @@ def exit_on_enter(key):
 
 
 class ProgressUI:
-    def __init__(
-        self, logpath: str, command: str, title: str, subtitle: str, regex: str
-    ):
+    def __init__(self, logpath: str, command: str, title: str, subtitle: str, regex: str):
         self.logpath = logpath or "/dev/null"
         self.cmds = command
         self.regex = re.compile(regex)
@@ -74,9 +70,7 @@ class ProgressUI:
         ]
 
         header_widget = urwid.AttrMap(urwid.Text(header_text), "header_back")
-        self.progressbar = urwid.ProgressBar(
-            "progressbar_normal", "progressbar_complete", 0, 100
-        )
+        self.progressbar = urwid.ProgressBar("progressbar_normal", "progressbar_complete", 0, 100)
         self.listbox = LogListBox()
         self.progressbar_header = urwid.Text("")
         footer_footer = urwid.AttrMap(urwid.Text(footer_info), "footer_foot")
@@ -109,7 +103,7 @@ class ProgressUI:
 
     def handle_in(self, data, err):
         indx = 1 if err else 0
-        last_char = ""
+        # last_char = ""
         # print(self.std_err_line[indx],data)
         for c in data.decode():
             if c in ["\r", "\n"]:
@@ -158,17 +152,18 @@ class ProgressUI:
             self.loop.run()
             # except:
             #     pass
-            try:
-                proc.send_signal(signal.SIGTERM)
-            except:
-                pass
+            proc.send_signal(signal.SIGTERM)
             sys.exit(0)
 
     def exit_loop_finish_proceess(self, exit_code):
         # self.handle_line("Process Finished... To Exit Press Q",False)
         if exit_code:
-            self.progressbar.normal="progressbar_error"
-            self.handle_progress(self.progressbar.current, "An Error Occured...", f"Code {exit_code}")
+            self.progressbar.normal = "progressbar_error"
+            self.handle_progress(
+                self.progressbar.current,
+                "An Error Occured...",
+                f"Code {exit_code}",
+            )
         else:
             self.handle_progress(100, "Process Finished...", "To Exit Press Q")
             if self.listbox.is_focus_end():

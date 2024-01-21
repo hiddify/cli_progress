@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
 from __future__ import annotations
-from typing import Tuple, List, Optional, Any, Iterable
-import urwid
+
 import re
+from typing import Any, Iterable, List, Optional, Tuple
+
+import urwid
+
 
 class ANSICanvas(urwid.canvas.Canvas):
     def __init__(self, size: Tuple[int, int], text_lines: List[str]) -> None:
@@ -57,6 +60,7 @@ class ANSIWidget(urwid.Widget):
 
         return canvas
 
+
 def escape_ansi(line):
-    ansi_escape = re.compile(r'(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]')
-    return ansi_escape.sub('', line)
+    ansi_escape = re.compile(r"(?:\x1B[@-_]|[\x80-\x9F])[0-?]*[ -/]*[@-~]")
+    return ansi_escape.sub("", line)

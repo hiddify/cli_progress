@@ -1,4 +1,5 @@
 import urwid
+
 from .ANSIWidget import ANSIWidget
 
 

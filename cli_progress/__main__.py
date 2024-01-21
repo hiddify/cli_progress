@@ -2,7 +2,9 @@
 
 
 import argparse
+
 from .progress_ui import ProgressUI
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Process log file with a command")
@@ -10,9 +12,7 @@ def parse_arguments():
     # Add a title to the command-line arguments
     title_group = parser.add_argument_group("Arguments")
     title_group.add_argument("--log", help="Path to the log file", required=False)
-    title_group.add_argument(
-        "--title", default="Title", help="Title for the script", required=False
-    )
+    title_group.add_argument("--title", default="Title", help="Title for the script", required=False)
     title_group.add_argument(
         "--subtitle",
         default="SubTitle",
@@ -32,7 +32,6 @@ def parse_arguments():
 
 def main():
     args = parse_arguments()
-    
 
     ui = ProgressUI(args.log, args.command, args.title, args.subtitle, args.regex)
     ui.start()
