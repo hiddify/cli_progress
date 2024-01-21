@@ -116,7 +116,7 @@ class ProgressUI:
                 self.std_err_line[indx] += c
 
     def handle_line(self, data, err):
-        self.logfile.writelines([data])
+        self.logfile.writelines([data + "\n"])
         # data = escape_ansi(data)
         progress_match = self.regex.match(data)
         if progress_match:

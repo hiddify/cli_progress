@@ -25,7 +25,7 @@ def parse_arguments():
         help="Regex for capturing the progress",
         required=False,
     )
-    title_group.add_argument("command", nargs="+", help="Command and its arguments")
+    title_group.add_argument("command", nargs=argparse.REMAINDER, help="Command and its arguments")
 
     return parser.parse_args()
 
