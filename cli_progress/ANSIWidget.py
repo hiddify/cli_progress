@@ -34,7 +34,7 @@ class ANSICanvas(urwid.canvas.Canvas):
             if i < len(self.text_lines):
                 text = self.text_lines[i]
             else:
-                text = b""
+                text = ""
 
             padding = bytes().rjust(max(0, cols - len(escape_ansi(text))))
             line = [(None, "U", text.encode("utf-8") + padding)]
