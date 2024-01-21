@@ -3,3 +3,8 @@
 # Add the requirements you need to this file.
 # or run `make init` to create this file automatically based on the template.
 # You can also run `make switch-to-poetry` to use the poetry package manager.
+urwid==2.4.1
+twisted==23.10.0
+pyOpenSSL==23.3.0
+service_identity==24.1.0
+argparse==1.4.0
