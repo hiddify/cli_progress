@@ -38,8 +38,13 @@ class ANSICanvas(urwid.canvas.Canvas):
                 text = self.text_lines[i]
             else:
                 text = ""
+            oversize = cols - len(escape_ansi(text))
+            if oversize < 0:
+                text = text[: oversize - 1] + ">\033[0m"
+                oversize = 0
 
-            padding = bytes().rjust(max(0, cols - len(escape_ansi(text))))
+            padding = bytes().rjust(oversize)
+
             line = [(None, "U", text.encode("utf-8") + padding)]
 
             yield line
