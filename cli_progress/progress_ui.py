@@ -53,9 +53,6 @@ footer_info = [
 ]
 
 
-def exit_on_enter(key):
-    if key in ("q", "Q"):
-        raise urwid.ExitMainLoop()
 
 
 class ProgressUI:
@@ -86,7 +83,7 @@ class ProgressUI:
         self.loop = urwid.MainLoop(
             BackgroundView(urwid.AttrMap(self.listbox, "body"), header_widget, footer),
             palette,
-            unhandled_input=exit_on_enter,
+            unhandled_input=self.exit_on_enter,
             handle_mouse=False,
             event_loop=main_event_loop,
         )
@@ -140,19 +137,20 @@ class ProgressUI:
 
     def start(self):
         with open(self.logpath, "w") as self.logfile:
-            proc = subprocess.Popen(
+            self.proc = subprocess.Popen(
                 self.cmds,
                 stdout=self.write_fd,
                 stderr=self.write_fd_err,
                 close_fds=True,
             )
-            d = threads.deferToThread(proc.wait)
+            
+            d = threads.deferToThread(self.proc.wait)
             d.addCallback(self.exit_loop)
             # try:
             self.loop.run()
             # except:
             #     pass
-            proc.send_signal(signal.SIGTERM)
+            self.proc.send_signal(signal.SIGTERM)
             sys.exit(self.exit_code)
 
     def exit_loop_finish_proceess(self, exit_code):
@@ -177,3 +175,7 @@ class ProgressUI:
     @main_event_loop.handle_exit
     def exit_loop(self, exit_code):
         main_event_loop.alarm(0, lambda: self.exit_loop_finish_proceess(exit_code))
+    def exit_on_enter(self,key):
+        if key in ("q", "Q"):
+            self.proc.send_signal(signal.SIGTERM)
+            raise urwid.ExitMainLoop()
