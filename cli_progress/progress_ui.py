@@ -6,6 +6,8 @@ import re
 import signal
 import subprocess
 import sys
+import os
+from pathlib import Path
 
 import urwid
 from twisted.internet import threads
@@ -136,6 +138,7 @@ class ProgressUI:
         )
 
     def start(self):
+        os.makedirs(Path(self.logpath).parent.absolute(),exist_ok=True)
         with open(self.logpath, "w") as self.logfile:
             self.proc = subprocess.Popen(
                 self.cmds,
