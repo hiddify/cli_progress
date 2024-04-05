@@ -8,14 +8,13 @@ import subprocess
 import sys
 import os
 from pathlib import Path
-
+import asyncio
 import urwid
-from twisted.internet import threads
 
 from .BackgroundWidget import BackgroundView
 from .LogListWidget import LogListBox
 
-main_event_loop = urwid.TwistedEventLoop()
+main_event_loop = urwid.AsyncioEventLoop(loop=asyncio.get_event_loop())
 
 palette = [
     ("screen edge", "light blue", "dark blue"),
@@ -136,24 +135,31 @@ class ProgressUI:
                 ("progress_header_descr", subtitle),
             ]
         )
-
-    def start(self):
-        os.makedirs(Path(self.logpath).parent.absolute(),exist_ok=True)
-        with open(self.logpath, "w") as self.logfile:
-            self.proc = subprocess.Popen(
-                self.cmds,
+    async def execute_command(self):
+        self.proc = await asyncio.create_subprocess_exec(
+                *self.cmds,
                 stdout=self.write_fd,
                 stderr=self.write_fd_err,
                 close_fds=True,
             )
+
+        # Wait for the process to finish
+        await self.proc.wait()
+        
+        self.exit_loop(self.proc.returncode)
+        
+    def start(self):
+        os.makedirs(Path(self.logpath).parent.absolute(),exist_ok=True)
+        asyncio.get_event_loop().add_signal_handler(signal.SIGINT,self.exit_handler, asyncio.get_event_loop())
+        asyncio.get_event_loop().add_signal_handler(signal.SIGTERM, self.exit_handler, asyncio.get_event_loop())
+        with open(self.logpath, "w") as self.logfile:
             
-            d = threads.deferToThread(self.proc.wait)
-            d.addCallback(self.exit_loop)
-            # try:
+            asyncio.get_event_loop().create_task(self.execute_command())
             self.loop.run()
-            # except:
-            #     pass
-            self.proc.send_signal(signal.SIGTERM)
+            try:
+                self.proc.send_signal(signal.SIGTERM)
+            except:
+                pass
             sys.exit(self.exit_code)
 
     def exit_loop_finish_proceess(self, exit_code):
@@ -175,10 +181,23 @@ class ProgressUI:
         if self.listbox.is_focus_end():
             raise urwid.ExitMainLoop
 
-    @main_event_loop.handle_exit
+    # @main_event_loop.handle_exit
     def exit_loop(self, exit_code):
         main_event_loop.alarm(0, lambda: self.exit_loop_finish_proceess(exit_code))
+        # asyncio.get_event_loop().stop()
+    def exit_handler(self, loop):
+        try:
+            self.proc.send_signal(signal.SIGINT)
+        except:
+            try:
+                self.proc.send_signal(signal.SIGTERM)
+            except:
+                sys.exit(-2)
+
+        # main_event_loop.alarm(0, lambda: self.exit_loop_finish_proceess("by CTRL+C... press CTRL+C again to exit"))
+
     def exit_on_enter(self,key):
+        
         if key in ("q", "Q"):
-            self.proc.send_signal(signal.SIGTERM)
+            self.exit_handler(0)
             raise urwid.ExitMainLoop()
