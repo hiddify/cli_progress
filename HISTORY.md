@@ -2,6 +2,11 @@ Changelog
 =========
 
 
+2.1.0 (2026-09-19)
+------------------
+- Release: version 2.1.0 🚀 [Hiddify]
+
+
 2.0.0 (2024-04-05)
 ------------------
 - Release: version 2.0.0 🚀 [Hiddify]

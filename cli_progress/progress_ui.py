@@ -7,6 +7,7 @@ import signal
 import subprocess
 import sys
 import os
+import termios
 from pathlib import Path
 import asyncio
 import urwid
@@ -149,18 +150,78 @@ class ProgressUI:
         self.exit_loop(self.proc.returncode)
         
     def start(self):
+        if not (sys.stdin.isatty() and sys.stdout.isatty()):
+            self.start_plain()
+            return
         os.makedirs(Path(self.logpath).parent.absolute(),exist_ok=True)
         asyncio.get_event_loop().add_signal_handler(signal.SIGINT,self.exit_handler, asyncio.get_event_loop())
         asyncio.get_event_loop().add_signal_handler(signal.SIGTERM, self.exit_handler, asyncio.get_event_loop())
         with open(self.logpath, "w") as self.logfile:
             
             asyncio.get_event_loop().create_task(self.execute_command())
-            self.loop.run()
+            try:
+                self.loop.run()
+            except termios.error:
+                # no usable controlling terminal (e.g. run from a non-interactive service)
+                try:
+                    self.proc.send_signal(signal.SIGTERM)
+                except Exception:
+                    pass
+                self.start_plain()
+                return
             try:
                 self.proc.send_signal(signal.SIGTERM)
             except:
                 pass
             sys.exit(self.exit_code)
+
+    def start_plain(self):
+        """Fallback mode for environments without a usable controlling terminal.
+
+        Runs the command and streams its output/progress as plain text instead
+        of rendering the urwid UI, avoiding termios calls entirely.
+        """
+        os.makedirs(Path(self.logpath).parent.absolute(), exist_ok=True)
+        loop = asyncio.get_event_loop()
+        try:
+            loop.add_signal_handler(signal.SIGINT, self.exit_handler, loop)
+            loop.add_signal_handler(signal.SIGTERM, self.exit_handler, loop)
+        except (NotImplementedError, RuntimeError):
+            pass
+        with open(self.logpath, "w") as self.logfile:
+            loop.run_until_complete(self.execute_command_plain())
+        sys.exit(self.exit_code)
+
+    async def execute_command_plain(self):
+        self.proc = await asyncio.create_subprocess_exec(
+            *self.cmds,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+
+        async def read_stream(stream, err):
+            while True:
+                line = await stream.readline()
+                if not line:
+                    break
+                self.handle_line_plain(line.decode(errors="replace").rstrip("\r\n"), err)
+
+        await asyncio.gather(
+            read_stream(self.proc.stdout, False),
+            read_stream(self.proc.stderr, True),
+        )
+        self.exit_code = await self.proc.wait()
+
+    def handle_line_plain(self, data, err):
+        self.logfile.writelines([data + "\n"])
+        progress_match = self.regex.match(data)
+        if progress_match:
+            p = progress_match.group("progress")
+            title = progress_match.group("title")
+            desc = progress_match.group("subtitle")
+            print(f"[{p}%] {title} {desc}".strip())
+        else:
+            print(data, file=sys.stderr if err else sys.stdout)
 
     def exit_loop_finish_proceess(self, exit_code):
         # self.handle_line("Process Finished... To Exit Press Q",False)
