@@ -1,6 +1,5 @@
 """Entry point for cli_progress."""
 
-
 import argparse
 import subprocess
 import sys

@@ -1,5 +1,5 @@
-from cli_progress.base import NAME
+import cli_progress
 
 
 def test_base():
-    assert NAME == "cli_progress"
+    assert cli_progress.__name__ == "cli_progress"

@@ -40,7 +40,7 @@ class ANSICanvas(urwid.canvas.Canvas):
                 text = ""
             oversize = cols - len(escape_ansi(text))
             if oversize < 0:
-                text = trancate_ansi(text,cols-1) +">\033[0m"
+                text = trancate_ansi(text, cols - 1) + ">\033[0m"
                 oversize = 0
 
             padding = bytes().rjust(oversize)
@@ -71,9 +71,9 @@ def escape_ansi(line):
     return ansi_escape.sub("", line)
 
 
-def trancate_ansi(line,cols):
-    
-    while len(with_out_ansi:=escape_ansi(line))>cols:
+def trancate_ansi(line, cols):
 
-        line=line[:-1]
+    while len(escape_ansi(line)) > cols:
+
+        line = line[:-1]
     return line

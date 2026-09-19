@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
+import os
 import re
 import signal
-import subprocess
 import sys
-import os
 import termios
 from pathlib import Path
-import asyncio
+
 import urwid
 
 from .BackgroundWidget import BackgroundView
@@ -53,8 +53,6 @@ footer_info = [
     ("footer_key", "PAGE DOWN"),
     " move",
 ]
-
-
 
 
 class ProgressUI:
@@ -137,14 +135,15 @@ class ProgressUI:
                 ("progress_header_descr", subtitle),
             ]
         )
+
     async def execute_command(self):
         try:
             self.proc = await asyncio.create_subprocess_exec(
-                    *self.cmds,
-                    stdout=self.write_fd,
-                    stderr=self.write_fd_err,
-                    close_fds=True,
-                )
+                *self.cmds,
+                stdout=self.write_fd,
+                stderr=self.write_fd_err,
+                close_fds=True,
+            )
         except OSError as e:
             self.proc = None
             self.handle_line(f"Error: {e}", True)
@@ -153,18 +152,18 @@ class ProgressUI:
 
         # Wait for the process to finish
         await self.proc.wait()
-        
+
         self.exit_loop(self.proc.returncode)
-        
+
     def start(self):
         if not (sys.stdin.isatty() and sys.stdout.isatty()):
             self.start_plain()
             return
-        os.makedirs(Path(self.logpath).parent.absolute(),exist_ok=True)
-        asyncio.get_event_loop().add_signal_handler(signal.SIGINT,self.exit_handler, asyncio.get_event_loop())
+        os.makedirs(Path(self.logpath).parent.absolute(), exist_ok=True)
+        asyncio.get_event_loop().add_signal_handler(signal.SIGINT, self.exit_handler, asyncio.get_event_loop())
         asyncio.get_event_loop().add_signal_handler(signal.SIGTERM, self.exit_handler, asyncio.get_event_loop())
         with open(self.logpath, "w") as self.logfile:
-            
+
             asyncio.get_event_loop().create_task(self.execute_command())
             try:
                 self.loop.run()
@@ -178,7 +177,7 @@ class ProgressUI:
                 return
             try:
                 self.proc.send_signal(signal.SIGTERM)
-            except:
+            except Exception:
                 pass
             sys.exit(self.exit_code)
 
@@ -259,19 +258,20 @@ class ProgressUI:
     def exit_loop(self, exit_code):
         main_event_loop.alarm(0, lambda: self.exit_loop_finish_proceess(exit_code))
         # asyncio.get_event_loop().stop()
+
     def exit_handler(self, loop):
         try:
             self.proc.send_signal(signal.SIGINT)
-        except:
+        except Exception:
             try:
                 self.proc.send_signal(signal.SIGTERM)
-            except:
+            except Exception:
                 sys.exit(-2)
 
         # main_event_loop.alarm(0, lambda: self.exit_loop_finish_proceess("by CTRL+C... press CTRL+C again to exit"))
 
-    def exit_on_enter(self,key):
-        
+    def exit_on_enter(self, key):
+
         if key in ("q", "Q"):
             self.exit_handler(0)
             raise urwid.ExitMainLoop()

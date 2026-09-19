@@ -2,8 +2,8 @@ Changelog
 =========
 
 
-(unreleased)
-------------
+2.2.1 (2026-09-19)
+------------------
 
 Fix
 ~~~
@@ -19,6 +19,7 @@ Fix
 
 Other
 ~~~~~
+- Release: version 2.2.1 🚀 [Hiddify]
 - Merge pull request #8 from mktwix/fix/non-tty-bypass-urwid. [Hiddify]
 
   fix: bypass urwid UI when stdout is not a TTY
