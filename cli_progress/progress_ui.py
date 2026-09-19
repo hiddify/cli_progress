@@ -93,6 +93,7 @@ class ProgressUI:
         self.write_fd_err = self.loop.watch_pipe(self.received_err)
 
         self.std_err_line = ["", ""]
+        self.proc = None
 
     def received_output(self, data):
         self.handle_in(data, False)
@@ -137,12 +138,18 @@ class ProgressUI:
             ]
         )
     async def execute_command(self):
-        self.proc = await asyncio.create_subprocess_exec(
-                *self.cmds,
-                stdout=self.write_fd,
-                stderr=self.write_fd_err,
-                close_fds=True,
-            )
+        try:
+            self.proc = await asyncio.create_subprocess_exec(
+                    *self.cmds,
+                    stdout=self.write_fd,
+                    stderr=self.write_fd_err,
+                    close_fds=True,
+                )
+        except OSError as e:
+            self.proc = None
+            self.handle_line(f"Error: {e}", True)
+            self.exit_loop(127)
+            return
 
         # Wait for the process to finish
         await self.proc.wait()
@@ -193,11 +200,17 @@ class ProgressUI:
         sys.exit(self.exit_code)
 
     async def execute_command_plain(self):
-        self.proc = await asyncio.create_subprocess_exec(
-            *self.cmds,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-        )
+        try:
+            self.proc = await asyncio.create_subprocess_exec(
+                *self.cmds,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+        except OSError as e:
+            self.proc = None
+            print(f"Error: {e}", file=sys.stderr)
+            self.exit_code = 127
+            return
 
         async def read_stream(stream, err):
             while True:

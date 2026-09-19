@@ -2,6 +2,33 @@ Changelog
 =========
 
 
+(unreleased)
+------------
+
+Fix
+~~~
+- Bypass urwid UI when stdout is not a TTY. [Cursor, Hossein]
+
+  Without a terminal, cli_progress wraps install/apply in an urwid MainLoop
+  that never exits after the subprocess finishes. This leaves apply_configs and
+  apply_users stuck indefinitely and prevents sing-box configs from reloading.
+
+  Run the wrapped command directly in non-interactive environments.
+
+  Fixes hiddify/Hiddify-Manager#5479
+
+Other
+~~~~~
+- Merge pull request #8 from mktwix/fix/non-tty-bypass-urwid. [Hiddify]
+
+  fix: bypass urwid UI when stdout is not a TTY
+
+
+2.2.0 (2026-09-19)
+------------------
+- Release: version 2.2.0 🚀 [Hiddify]
+
+
 2.1.0 (2026-09-19)
 ------------------
 - Release: version 2.1.0 🚀 [Hiddify]
