@@ -81,7 +81,13 @@ the command.
 
 ## Development
 
+[uv](https://docs.astral.sh/uv/) manages the environment, the dependencies (`pyproject.toml`, `uv.lock`) and the builds.
+
 ```bash
-pip install -e .[test]
-pytest
+make install   # uv sync: .venv with the dev tools
+make test      # flake8, black, mypy, then pytest with coverage
+make build     # uv build: the sdist and the wheel in dist/
+make release   # writes cli_progress/VERSION, tags and pushes; CI builds, checks the wheel runs, and publishes
 ```
+
+Try it: `uv run python -m cli_progress --title Demo -- ./test.sh`

@@ -1,5 +1,5 @@
-FROM python:3.7-slim
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
 COPY . /app
 WORKDIR /app
-RUN pip install .
-CMD ["cli_progress"]
+RUN uv sync --no-dev --frozen
+ENTRYPOINT ["uv", "run", "--no-dev", "cli_progress"]
