@@ -34,10 +34,14 @@ def main(argv: list[str] | None = None) -> None:
         print("cli_progress: no command given", file=sys.stderr)
         raise SystemExit(2)
 
-    from .app import terminal_usable
+    from .app import terminal_problem
 
-    if args.plain or not terminal_usable():
+    problem = None if args.plain else terminal_problem()
+    if args.plain or problem:
         from .plain import run_plain
+
+        if problem:
+            print(f"cli_progress: no progress window: {problem}", file=sys.stderr)
 
         raise SystemExit(run_plain(command, log_path=args.log, regex=args.regex))
 

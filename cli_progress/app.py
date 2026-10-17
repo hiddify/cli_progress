@@ -403,16 +403,37 @@ def _colors() -> int:
     return 16
 
 
-def terminal_usable() -> bool:
-    """A real terminal that can be put in raw mode (not a pipe, a web terminal without a tty, or TERM=dumb)."""
-    if os.environ.get("TERM", "dumb") == "dumb" or not (sys.stdin.isatty() and sys.stdout.isatty()):
-        return False
+DEFAULT_SIZE = (80, 24)
+MIN_SIZE = (30, 10)
+
+
+def terminal_problem() -> str | None:
+    """Why the window can not be shown (None: it can). Browser SSH clients often send no TERM and a 0x0 size: TERM
+    then defaults to xterm-256color, and the terminal is given 80x24 (urwid needs a size)."""
+    if not (sys.stdin.isatty() and sys.stdout.isatty()):
+        return "not a terminal (a pipe or a file)"
+    term = os.environ.get("TERM", "")
+    if term == "dumb":
+        return "TERM=dumb"
+    if not term:
+        os.environ["TERM"] = "xterm-256color"
     try:
+        import fcntl
+        import struct
         import termios
 
-        attrs = termios.tcgetattr(sys.stdin.fileno())
-        termios.tcsetattr(sys.stdin.fileno(), termios.TCSANOW, attrs)
-        cols, rows = os.get_terminal_size()
-    except Exception:  # termios.error, OSError, no termios at all
-        return False
-    return cols >= 30 and rows >= 10
+        fd = sys.stdout.fileno()
+        termios.tcsetattr(sys.stdin.fileno(), termios.TCSANOW, termios.tcgetattr(sys.stdin.fileno()))
+        rows, cols = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, b"\0" * 4))
+        if rows <= 0 or cols <= 0:
+            cols, rows = DEFAULT_SIZE
+            fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
+    except Exception as e:  # termios.error, OSError, no termios at all
+        return f"the terminal can not be set up ({e})"
+    if cols < MIN_SIZE[0] or rows < MIN_SIZE[1]:
+        return f"the terminal is too small ({cols}x{rows}, needs {MIN_SIZE[0]}x{MIN_SIZE[1]})"
+    return None
+
+
+def terminal_usable() -> bool:
+    return terminal_problem() is None

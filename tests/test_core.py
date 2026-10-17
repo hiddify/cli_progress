@@ -75,3 +75,10 @@ def test_plain_mode_runs_once_and_keeps_exit_code(tmp_path, capsys):
     assert counter.read_text() == "x"
     assert log.read_text().splitlines() == ["####50####Half####way####", "hi"]
     assert "[ 50%] Half · way" in capsys.readouterr().out
+
+
+def test_terminal_problem_without_a_tty(monkeypatch):
+    from cli_progress.app import terminal_problem
+
+    monkeypatch.setattr(sys.stdin, "isatty", lambda: False, raising=False)
+    assert terminal_problem() == "not a terminal (a pipe or a file)"
