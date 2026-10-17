@@ -2,6 +2,17 @@ Changelog
 =========
 
 
+(unreleased)
+------------
+- Make it fantastic. [hiddify-com]
+- Make it fantastic. [hiddify-com]
+
+
+2.2.2 (2026-09-19)
+------------------
+- Release: version 2.2.2 🚀 [Hiddify]
+
+
 2.2.1 (2026-09-19)
 ------------------
 
