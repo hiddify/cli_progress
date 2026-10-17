@@ -8,6 +8,13 @@ Changelog
 - Make it fantastic. [hiddify-com]
 
 
+3.0.0 (2026-10-17)
+------------------
+- Release: version 3.0.0 🚀 [hiddify-com]
+- Make it fantastic. [hiddify-com]
+- Make it fantastic. [hiddify-com]
+
+
 2.2.2 (2026-09-19)
 ------------------
 - Release: version 2.2.2 🚀 [Hiddify]
