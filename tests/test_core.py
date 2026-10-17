@@ -5,6 +5,8 @@ from __future__ import annotations
 import sys
 import textwrap
 
+import pytest
+
 from cli_progress import logo
 from cli_progress.ansi import Severity, parse, strip
 from cli_progress.plain import run_plain
@@ -82,3 +84,30 @@ def test_terminal_problem_without_a_tty(monkeypatch):
 
     monkeypatch.setattr(sys.stdin, "isatty", lambda: False, raising=False)
     assert terminal_problem() == "not a terminal (a pipe or a file)"
+
+
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="Linux termios2 (BOTHER)")
+def test_custom_line_speed_is_made_settable():
+    """Some web SSH bridges give the pty a custom speed: tcsetattr then fails with EINVAL until it gets a standard one."""
+    import fcntl
+    import os
+    import pty
+    import struct
+    import termios
+
+    from cli_progress.app import _settable
+
+    master, slave = pty.openpty()
+    try:
+        buf = bytearray(44)
+        fcntl.ioctl(slave, 0x802C542A, buf)  # TCGETS2
+        iflag, oflag, cflag, lflag = struct.unpack_from("IIII", buf)
+        struct.pack_into("IIII", buf, 0, iflag, oflag, (cflag & ~0o010017) | 0o010000, lflag)  # BOTHER
+        struct.pack_into("II", buf, 36, 12345, 12345)
+        fcntl.ioctl(slave, 0x402C542B, buf)  # TCSETS2
+        # (Python < 3.14 reads it back as a value tcsetattr refuses with EINVAL; 3.14 handles it)
+        _settable(slave)
+        termios.tcsetattr(slave, termios.TCSANOW, termios.tcgetattr(slave))  # urwid can set it up now
+    finally:
+        os.close(master)
+        os.close(slave)

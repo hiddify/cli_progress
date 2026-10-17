@@ -423,7 +423,7 @@ def terminal_problem() -> str | None:
         import termios
 
         fd = sys.stdout.fileno()
-        termios.tcsetattr(sys.stdin.fileno(), termios.TCSANOW, termios.tcgetattr(sys.stdin.fileno()))
+        _settable(sys.stdin.fileno())
         rows, cols = struct.unpack("hh", fcntl.ioctl(fd, termios.TIOCGWINSZ, b"\0" * 4))
         if rows <= 0 or cols <= 0:
             cols, rows = DEFAULT_SIZE
@@ -433,6 +433,23 @@ def terminal_problem() -> str | None:
     if cols < MIN_SIZE[0] or rows < MIN_SIZE[1]:
         return f"the terminal is too small ({cols}x{rows}, needs {MIN_SIZE[0]}x{MIN_SIZE[1]})"
     return None
+
+
+def _settable(fd: int) -> None:
+    """Make sure the terminal's modes can be set (urwid sets them). A custom line speed (Linux BOTHER, which some web
+    SSH bridges use) reads back as a value tcsetattr refuses with EINVAL: give it a standard one, meaningless on a
+    pseudo-terminal."""
+    import errno
+    import termios
+
+    attrs = termios.tcgetattr(fd)
+    try:
+        termios.tcsetattr(fd, termios.TCSANOW, attrs)
+    except termios.error as e:
+        if e.args[0] != errno.EINVAL:
+            raise
+        attrs[4] = attrs[5] = termios.B38400
+        termios.tcsetattr(fd, termios.TCSANOW, attrs)
 
 
 def terminal_usable() -> bool:
