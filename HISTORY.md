@@ -5,6 +5,12 @@ Changelog
 (unreleased)
 ------------
 - Make it fantastic. [hiddify-com]
+
+
+3.0.1 (2026-10-17)
+------------------
+- Release: version 3.0.1 🚀 [hiddify-com]
+- Make it fantastic. [hiddify-com]
 - Make it fantastic. [hiddify-com]
 
 
