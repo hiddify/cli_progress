@@ -1,44 +1,63 @@
-name: Upload Python Package
+name: Release
 
+# make release: writes cli_progress/VERSION, commits, tags (e.g. 3.0.1) and pushes the tag.
 on:
   push:
-    # Sequence of patterns matched against refs/tags
-    tags:
-      - '*' # Push events to matching v*, i.e. v1.0, v20.15.10
-
-  # Allows you to run this workflow manually from the Actions tab
+    tags: ["[0-9]+.[0-9]+.[0-9]+*"]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  release:
-    name: Create Release
+  checks:
+    uses: ./.github/workflows/main.yml
+
+  verify-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: The tag is the version in cli_progress/VERSION
+        if: github.ref_type == 'tag'
+        run: |
+          version="$(tr -d '[:space:]' < cli_progress/VERSION)"
+          if [ "$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME but cli_progress/VERSION is $version"
+            exit 1
+          fi
+
+  publish:
+    needs: [checks, verify-tag]
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    environment: pypi
+    steps:
+      - uses: actions/download-artifact@v4 # the wheel the checks built and ran
+        with:
+          name: dist
+          path: dist/
+      - uses: astral-sh/setup-uv@v6
+      - name: Publish to PyPI
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: uv publish
+
+  github-release:
+    needs: publish
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-          # by default, it uses a depth of 1
-          # this fetches all history so that we can read each commit
-          fetch-depth: 0
-      - name: Generate Changelog
+          fetch-depth: 0 # the commits since the previous tag
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Release notes
         run: .github/release_message.sh > release_message.md
-      - name: Release
-        uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@v2
         with:
           body_path: release_message.md
-
-  deploy:
-    needs: release
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: astral-sh/setup-uv@v6
-    - name: Build
-      run: uv build
-    - name: The built wheel runs (it has every module)
-      run: uv run --isolated --no-project --with dist/*.whl python -m cli_progress --plain -- true
-    - name: Publish
-      env:
-        UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-      run: uv publish
+          files: dist/*

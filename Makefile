@@ -30,10 +30,13 @@ lint:             ## Run flake8, black, mypy.
 	uv run mypy cli_progress/
 
 .PHONY: test
-test: lint        ## Run tests and generate coverage report.
+test:             ## Run the tests with coverage (make check: lint, then tests).
 	uv run pytest -v --cov=cli_progress -l --tb=short --maxfail=1 tests/
 	uv run coverage xml
 	uv run coverage html
+
+.PHONY: check
+check: lint test  ## Everything CI runs: lint and tests.
 
 .PHONY: build
 build:            ## Build the sdist and the wheel into dist/.
