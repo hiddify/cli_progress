@@ -32,12 +32,13 @@ def read_requirements(path):
 setup(
     name="cli_progress",
     version=read("cli_progress", "VERSION"),
-    description="Awesome cli_progress created by hiddify",
+    description="Run a command behind a calm full-screen progress window",
     url="https://github.com/hiddify/cli_progress/",
     long_description=read("README.md"),
     long_description_content_type="text/markdown",
     author="hiddify",
     packages=find_packages(exclude=["tests", ".github"]),
+    python_requires=">=3.10",
     install_requires=read_requirements("requirements.txt"),
     entry_points={
         "console_scripts": ["cli_progress = cli_progress.__main__:main"]

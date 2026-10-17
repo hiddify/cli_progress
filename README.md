@@ -1,85 +1,87 @@
-
-# Python Project Template
-
-A low dependency and really simple to start project template for Python Projects.
-
-See also 
-- [Flask-Project-Template](https://github.com/rochacbruno/flask-project-template/) for a full feature Flask project including database, API, admin interface, etc.
-- [FastAPI-Project-Template](https://github.com/rochacbruno/fastapi-project-template/) The base to start an openapi project featuring: SQLModel, Typer, FastAPI, JWT Token Auth, Interactive Shell, Management Commands.
-
-### HOW TO USE THIS TEMPLATE
-
-> **DO NOT FORK** this is meant to be used from **[Use this template](https://github.com/rochacbruno/python-project-template/generate)** feature.
-
-1. Click on **[Use this template](https://github.com/rochacbruno/python-project-template/generate)**
-3. Give a name to your project  
-   (e.g. `my_awesome_project` recommendation is to use all lowercase and underscores separation for repo names.)
-3. Wait until the first run of CI finishes  
-   (Github Actions will process the template and commit to your new repo)
-4. If you want [codecov](https://about.codecov.io/sign-up/) Reports and Automatic Release to [PyPI](https://pypi.org)  
-  On the new repository `settings->secrets` add your `PYPI_API_TOKEN` and `CODECOV_TOKEN` (get the tokens on respective websites)
-4. Read the file [CONTRIBUTING.md](CONTRIBUTING.md)
-5. Then clone your new project and happy coding!
-
-> **NOTE**: **WAIT** until first CI run on github actions before cloning your new project.
-
-### What is included on this template?
-
-- 🖼️ Templates for starting multiple application types:
-  * **Basic low dependency** Python program (default) [use this template](https://github.com/rochacbruno/python-project-template/generate)
-  * **Flask** with database, admin interface, restapi and authentication [use this template](https://github.com/rochacbruno/flask-project-template/generate).
-  **or Run `make init` after cloning to generate a new project based on a template.**
-- 📦 A basic [setup.py](setup.py) file to provide installation, packaging and distribution for your project.  
-  Template uses setuptools because it's the de-facto standard for Python packages, you can run `make switch-to-poetry` later if you want.
-- 🤖 A [Makefile](Makefile) with the most useful commands to install, test, lint, format and release your project.
-- 📃 Documentation structure using [mkdocs](http://www.mkdocs.org)
-- 💬 Auto generation of change log using **gitchangelog** to keep a HISTORY.md file automatically based on your commit history on every release.
-- 🐋 A simple [Containerfile](Containerfile) to build a container image for your project.  
-  `Containerfile` is a more open standard for building container images than Dockerfile, you can use buildah or docker with this file.
-- 🧪 Testing structure using [pytest](https://docs.pytest.org/en/latest/)
-- ✅ Code linting using [flake8](https://flake8.pycqa.org/en/latest/)
-- 📊 Code coverage reports using [codecov](https://about.codecov.io/sign-up/)
-- 🛳️ Automatic release to [PyPI](https://pypi.org) using [twine](https://twine.readthedocs.io/en/latest/) and github actions.
-- 🎯 Entry points to execute your program using `python -m <cli_progress>` or `$ cli_progress` with basic CLI argument parsing.
-- 🔄 Continuous integration using [Github Actions](.github/workflows/) with jobs to lint, test and release your project on Linux, Mac and Windows environments.
-
-> Curious about architectural decisions on this template? read [ABOUT_THIS_TEMPLATE.md](ABOUT_THIS_TEMPLATE.md)  
-> If you want to contribute to this template please open an [issue](https://github.com/rochacbruno/python-project-template/issues) or fork and send a PULL REQUEST.
-
-[❤️ Sponsor this project](https://github.com/sponsors/rochacbruno/)
-
-<!--  DELETE THE LINES ABOVE THIS AND WRITE YOUR PROJECT README BELOW -->
-
----
 # cli_progress
 
-[![codecov](https://codecov.io/gh/hiddify/cli_progress/branch/main/graph/badge.svg?token=cli_progress_token_here)](https://codecov.io/gh/hiddify/cli_progress)
-[![CI](https://github.com/hiddify/cli_progress/actions/workflows/main.yml/badge.svg)](https://github.com/hiddify/cli_progress/actions/workflows/main.yml)
+Run a long command (an installer, an update) behind a calm full-screen progress window.
 
-Awesome cli_progress created by hiddify
+While it runs you see only your logo, the current step and a smooth progress bar, with the time it has taken and
+roughly how long is left. The output is one key away, and it is always written to the log file.
 
-## Install it from PyPI
+```
+                    ▓▓▓
+                  ▓▓▓▓▓
+             ▓▓▓
+           ▓▓▓▓▓  ▓▓▓▓▓
+      ▓▓▓  ▓▓▓▓▓  ▓▓▓▓▓
+   ▓▓▓▓▓▓  ▓▓▓▓▓  ▓▓▓▓▓
+   ▓▓▓▓▓▓▓▓▓▓▓▓▓  ▓▓▓▓▓
+   ▓▓▓▓▓▓  ▓▓▓▓▓  ▓▓▓▓▓
 
-```bash
-pip install cli_progress
+        Hiddify Manager   v14.0.0
+
+ Installing...
+
+ ━━━━━━━━━━━━━━━━━━━━━━━━━╸━━━━━━━━━━━━━  62.1%
+ ⏱ 2m 10s   ≈ 1m 20s left    ⚠ 1
+
+ ✓ MySQL                                 12s
+ ✓ Hiddify Panel                         48s
+ ⠦ Xray                                   6s
+
+   Setting up xray-core (25.10.15) ...
+
+            L  show log    Q  quit
 ```
 
 ## Usage
 
-```py
-from cli_progress import BaseClass
-from cli_progress import base_function
-
-BaseClass().base_method()
-base_function()
+```bash
+python -m cli_progress --title "Hiddify Manager" --subtitle v14 \
+    --logo logo.ico --log /var/log/install.log -- ./install.sh --no-gui
 ```
+
+| Option | |
+|---|---|
+| `--title`, `--subtitle` | shown under the logo |
+| `--logo FILE` | a text file with the logo (block characters); a built-in one by default |
+| `--log FILE` | the command's whole output (with its colors) goes there |
+| `--regex` | the progress line; default `####<percent>####<title>####<step>####` |
+| `--auto-exit SECONDS` | close this long after a success (default 5; `0` waits for a key) |
+| `--no-counts` | hide the ⚠ warnings / ✗ errors counts next to the timer |
+| `--plain` | no window: print the output and a line for each step |
+
+The command reports progress by printing lines such as:
 
 ```bash
-$ python -m cli_progress
-#or
-$ cli_progress
+echo "####42####Installing...####Hiddify Panel####"
 ```
+
+Those lines are not shown or logged as output; they move the bar and add a step.
+
+### Keys
+
+| | Running | Finished |
+|---|---|---|
+| `L` | show the log | show the log |
+| `Q`, `Esc`, Ctrl+C | ask before stopping (Ctrl+C twice stops) | close |
+| `Enter` | | close |
+
+In the log (it opens under the logo and the progress bar, which stay on top): `↑` `↓` `PgUp` `PgDn` scroll (it holds still while you read), `End` follows new lines again, `e` / `E` jump
+to the next / previous error or warning, `Esc` goes back.
+
+### What happens when
+
+- **Success**: the logo turns green and the window closes after a few seconds (any key keeps it open).
+- **Failure**: the logo turns red, the step that failed is marked, the last errors and warnings are shown, and the
+  window stays until you close it. A short summary with the log's path is printed after it closes.
+- **Stop**: the command gets SIGINT (to clean up), then SIGTERM, then SIGKILL. The exit code is 130.
+- **No usable terminal** (a pipe, cron, `ssh` without `-t`, `TERM=dumb`): plain output, same log, same exit code. The
+  command never runs twice.
+
+The command runs in its own session with no stdin: the terminal's Ctrl+C reaches the window (which asks first), not
+the command.
 
 ## Development
 
-Read the [CONTRIBUTING.md](CONTRIBUTING.md) file.
+```bash
+pip install -e .[test]
+pytest
+```
