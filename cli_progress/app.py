@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import os
+import select
 import signal
 import sys
 import time
@@ -24,6 +25,8 @@ from .theme import PALETTE
 from .widgets import Bar, Confirm, Logo, LogView, Phase, Steps, duration, keys
 
 FPS = 12
+#: seconds the window stays open for a key after the command ended
+MAX_WAIT_AFTER_END = 30 * 60
 STOPPED_BY_USER = 130
 
 
@@ -52,6 +55,8 @@ class ProgressApp:
         self.started = time.monotonic()
         self.finished_at: float | None = None
         self.close_at: float | None = None
+        self._ppid = os.getppid()
+        self._next_check = 0.0
         self.percent = 0
         self.headline = "Starting…"
         self.warnings = 0
@@ -76,7 +81,7 @@ class ProgressApp:
         self.footer: urwid.WidgetPlaceholder[urwid.Widget] = urwid.WidgetPlaceholder(urwid.Text(""))
         self.frame: urwid.Frame = urwid.Frame(self.main, footer=urwid.Padding(self.footer, left=1, right=1))
         self.root: urwid.WidgetPlaceholder[urwid.Widget] = urwid.WidgetPlaceholder(urwid.AttrMap(self.frame, "bg"))
-        self.screen = urwid.raw_display.Screen()
+        self.screen = _Screen()
         self.screen.set_terminal_properties(colors=_colors())
         self.event_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.event_loop)
@@ -215,6 +220,9 @@ class ProgressApp:
         self.close_dialog()
 
     def stop(self) -> None:
+        if self.phase in (Phase.done, Phase.failed):  # SIGTERM / SIGHUP after the end: nobody is left to press a key
+            self.close_at = time.monotonic()
+            return
         if self.command.running and self.phase is Phase.running:
             self.phase = Phase.stopping
             self.headline = "Stopping… (the command is cleaning up)"
@@ -222,8 +230,25 @@ class ProgressApp:
 
     # ------------------------------------------------------------------------------------------ every frame
 
+    def _orphaned(self) -> bool:
+        """The terminal hung up or the parent died without a SIGHUP reaching us (a closed SSH session, a killed
+        script): the window would redraw for nobody, forever."""
+        if os.getppid() != self._ppid:
+            return True
+        try:
+            os.tcgetpgrp(sys.stdout.fileno())
+        except OSError:
+            return True
+        return False
+
     def tick(self, _loop: urwid.MainLoop | None = None, _data: object = None) -> None:
         now = time.monotonic()
+        if now >= self._next_check:
+            self._next_check = now + 1
+            if self._orphaned():
+                self.stop()
+            elif self.finished_at is not None and self.close_at is None and now - self.finished_at > MAX_WAIT_AFTER_END:
+                self.close_at = now  # done long ago and no key since: do not wait forever
         self._layout()
         self.bar.tick()
         self.logo.tick(now, self.bar.shown)
@@ -379,7 +404,8 @@ class ProgressApp:
             if self._logfile:
                 self._logfile.close()
             self.event_loop.close()
-        self.print_summary()
+        if not self.screen.hung_up:  # nobody to read it (and writing to a hung-up terminal fails)
+            self.print_summary()
         return self.exit_code
 
     def print_summary(self) -> None:
@@ -394,6 +420,29 @@ class ProgressApp:
             print(f"  {dim}│{reset} {strip(line.text)}")
         if self.log_path:
             print(f"  {dim}Full log: {self.log_path}{reset}")
+
+
+class _Screen(urwid.raw_display.Screen):
+    """urwid's screen, but a hung-up terminal ends the window. urwid reads its input in ``while ready: read`` and a
+    terminal that is gone is always ready with nothing to read: one callback that never returns, at full CPU."""
+
+    hung_up = False
+
+    def _read_raw_input(self, timeout: int) -> bytearray:
+        fd = self._input_fileno()
+        if fd is not None and not self.hung_up and select.select([fd], [], [], 0)[0]:
+            try:
+                data = os.read(fd, 1024)
+            except BlockingIOError:
+                data = None
+            except OSError:  # EIO: the terminal is gone
+                data = b""
+            if data == b"":
+                self.hung_up = True
+                raise urwid.ExitMainLoop()
+            if data:
+                return bytearray(data) + super()._read_raw_input(0)
+        return super()._read_raw_input(timeout)
 
 
 def _colors() -> int:
