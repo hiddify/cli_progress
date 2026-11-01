@@ -4,6 +4,22 @@ Changelog
 
 (unreleased)
 ------------
+
+Fix
+~~~
+- Exit when the terminal is gone instead of spinning at full CPU.
+  [hiddify-com]
+
+  urwid reads its input in 'while ready: read'; a hung-up terminal is always ready with nothing to read, so that one
+  callback never returned (no frame, no signal handler, no exit) and the process stayed at ~60% CPU for good.
+  - a hung-up terminal (EOF / EIO on stdin) ends the window; a running command is stopped as on SIGHUP
+  - SIGTERM / SIGHUP after the command ended close the window (they only stopped a running command)
+  - each second: the parent gone or the terminal unusable stops it; after the end, no key for 30 min closes it
+
+
+3.0.4 (2026-10-17)
+------------------
+- Release: version 3.0.4 🚀 [hiddify-com]
 - Make it fantastic. [hiddify-com]
 
 
