@@ -4,6 +4,69 @@ Changelog
 
 (unreleased)
 ------------
+- Merge remote-tracking branch 'pr/12' [hiddify-com]
+- Build(deps-dev): bump pytest from 9.1.1 to 9.2.0. [dependabot[bot]]
+
+  Bumps [pytest](https://github.com/pytest-dev/pytest) from 9.1.1 to 9.2.0.
+  - [Release notes](https://github.com/pytest-dev/pytest/releases)
+  - [Changelog](https://github.com/pytest-dev/pytest/blob/main/CHANGELOG.rst)
+  - [Commits](https://github.com/pytest-dev/pytest/compare/9.1.1...9.2.0)
+
+  ---
+  updated-dependencies:
+  - dependency-name: pytest
+    dependency-version: 9.2.0
+    dependency-type: direct:development
+    update-type: version-update:semver-minor
+  ...
+- Merge remote-tracking branch 'pr/11' [hiddify-com]
+- Build(deps-dev): bump mypy from 2.4.0 to 2.4.1. [dependabot[bot]]
+
+  Bumps [mypy](https://github.com/python/mypy) from 2.4.0 to 2.4.1.
+  - [Changelog](https://github.com/python/mypy/blob/master/CHANGELOG.md)
+  - [Commits](https://github.com/python/mypy/compare/v2.4.0...v2.4.1)
+
+  ---
+  updated-dependencies:
+  - dependency-name: mypy
+    dependency-version: 2.4.1
+    dependency-type: direct:development
+    update-type: version-update:semver-patch
+  ...
+- Merge remote-tracking branch 'pr/10' [hiddify-com]
+- Build(deps): bump urwid from 3.0.5 to 4.2.5. [dependabot[bot]]
+
+  Bumps [urwid](https://github.com/urwid/urwid) from 3.0.5 to 4.2.5.
+  - [Release notes](https://github.com/urwid/urwid/releases)
+  - [Changelog](https://github.com/urwid/urwid/blob/master/docs/changelog.rst)
+  - [Commits](https://github.com/urwid/urwid/compare/3.0.5...4.2.5)
+
+  ---
+  updated-dependencies:
+  - dependency-name: urwid
+    dependency-version: 4.2.5
+    dependency-type: direct:production
+    update-type: version-update:semver-major
+  ...
+- Merge remote-tracking branch 'pr/9' [hiddify-com]
+- Build(deps): bump actions/checkout from 4 to 7. [dependabot[bot]]
+
+  Bumps [actions/checkout](https://github.com/actions/checkout) from 4 to 7.
+  - [Release notes](https://github.com/actions/checkout/releases)
+  - [Changelog](https://github.com/actions/checkout/blob/main/CHANGELOG.md)
+  - [Commits](https://github.com/actions/checkout/compare/v4...v7)
+
+  ---
+  updated-dependencies:
+  - dependency-name: actions/checkout
+    dependency-version: '7'
+    dependency-type: direct:production
+    update-type: version-update:semver-major
+  ...
+
+
+3.0.5 (2026-11-01)
+------------------
 
 Fix
 ~~~
@@ -15,6 +78,10 @@ Fix
   - a hung-up terminal (EOF / EIO on stdin) ends the window; a running command is stopped as on SIGHUP
   - SIGTERM / SIGHUP after the command ended close the window (they only stopped a running command)
   - each second: the parent gone or the terminal unusable stops it; after the end, no key for 30 min closes it
+
+Other
+~~~~~
+- Release: version 3.0.5 🚀 [hiddify-com]
 
 
 3.0.4 (2026-10-17)
