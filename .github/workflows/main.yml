@@ -64,7 +64,7 @@ jobs:
         run: |
           uv run --isolated --no-project --with dist/*.whl python -c "import cli_progress.app, cli_progress.plain, cli_progress.widgets"
           uv run --isolated --no-project --with dist/*.whl python -m cli_progress --plain -- bash -c 'echo "####50####Check####wheel####"; echo ok'
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
